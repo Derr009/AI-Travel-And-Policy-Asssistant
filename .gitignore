@@ -1,0 +1,15 @@
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Environment Variables
+.env
+
+# Vector Store Cache / Indexes
+*.index
+*.pkl
+chroma_db/
+faiss_index/
