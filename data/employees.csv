@@ -1,0 +1,7 @@
+employee_id,country,employee_type,status,manager_approval,created_at
+EMP001,India,Full-Time,Eligible,true,2026-09-09T14:38:42.691058+05:30
+EMP002,India,Contractor,Approval Required,false,2026-09-09T14:38:42.691058+05:30
+EMP003,United States,Full-Time,Eligible,true,2026-09-09T14:38:42.691058+05:30
+EMP004,United States,Contractor,Not Eligible,false,2026-09-09T14:38:42.691058+05:30
+EMP005,India,Full-Time,Eligible,true,2026-09-09T14:38:42.691058+05:30
+EMP006,United States,Full-Time,Approval Required,false,2026-09-09T14:38:42.691058+05:30

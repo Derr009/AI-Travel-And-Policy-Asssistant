@@ -1,5 +1,5 @@
 # Python
-venv/
+venv*/
 __pycache__/
 *.py[cod]
 *$py.class
@@ -13,3 +13,4 @@ __pycache__/
 *.pkl
 chroma_db/
 faiss_index/
+*.db
