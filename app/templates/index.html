@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AI-powered corporate travel and policy assistant">
+  <title>Atlas | Travel Policy Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Application navigation">
+      <div class="brand-lockup">
+        <div class="brand-mark">A</div>
+        <div>
+          <strong>Atlas</strong>
+          <span>Travel intelligence</span>
+        </div>
+      </div>
+
+      <nav class="nav-list">
+        <a class="nav-item active" href="#assistant"><span class="nav-icon">◉</span>Assistant</a>
+        <a class="nav-item" href="#policies"><span class="nav-icon">▤</span>Policy library</a>
+        <a class="nav-item" href="#profile"><span class="nav-icon">◎</span>Employee profile</a>
+      </nav>
+
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-label">Quick prompts</div>
+      <button class="prompt-link" data-prompt="What is the standard travel limit in India?">India travel limit <span>↗</span></button>
+      <button class="prompt-link" data-prompt="Are late-night airport trips allowed?">Late-night airport rules <span>↗</span></button>
+      <button class="prompt-link" data-prompt="What information is required for an expense?">Expense requirements <span>↗</span></button>
+
+      <div class="sidebar-footer">
+        <div class="system-status"><span class="status-dot"></span><span>Local systems online</span></div>
+        <span class="version">v0.1 / training environment</span>
+      </div>
+    </aside>
+
+    <main class="workspace" id="assistant">
+      <header class="topbar">
+        <div class="breadcrumb"><span>Workspace</span><b>/</b><strong>Assistant</strong></div>
+        <div class="topbar-actions">
+          <span class="connection-pill"><span class="status-dot"></span> Ollama connected</span>
+          <button class="icon-button" id="new-chat-button" title="Start a new conversation" aria-label="Start a new conversation">＋</button>
+          <div class="profile-chip"><span class="profile-avatar">N</span><span>Employee</span></div>
+        </div>
+      </header>
+
+      <section class="workspace-grid">
+        <div class="chat-column">
+          <div class="intro-row">
+            <div>
+              <p class="eyebrow">CORPORATE TRAVEL / POLICY DESK</p>
+              <h1>What are we navigating today?</h1>
+              <p class="intro-copy">Ask about travel limits, eligibility, approvals, and reimbursements.</p>
+            </div>
+            <div class="date-stamp"><span>SESSION</span><strong id="conversation-label">New conversation</strong></div>
+          </div>
+
+          <section class="chat-panel" aria-label="Conversation">
+            <div class="chat-toolbar">
+              <div class="toolbar-title"><span class="live-pulse"></span><span>Assistant online</span></div>
+              <button class="clear-button" id="clear-button">Clear thread</button>
+            </div>
+            <div class="messages" id="messages" aria-live="polite">
+              <div class="welcome-message" id="welcome-message">
+                <div class="welcome-orbit"><span>✦</span></div>
+                <h2>Bring me the question.</h2>
+                <p>I’ll find the governing policy, check the details, and show you what supports the answer.</p>
+              </div>
+            </div>
+            <form class="composer" id="ask-form">
+              <div class="composer-meta">
+                <label for="employee-id">Employee ID</label>
+                <input id="employee-id" name="employee_id" type="text" placeholder="EMP001" autocomplete="off">
+                <span class="composer-hint">Enter to send · Shift + Enter for a new line</span>
+              </div>
+              <div class="composer-input-row">
+                <textarea id="question" name="question" rows="1" placeholder="Ask about a policy or trip..." required></textarea>
+                <button class="send-button" type="submit" aria-label="Send question" title="Send question">↗</button>
+              </div>
+            </form>
+          </section>
+        </div>
+
+        <aside class="context-column" aria-label="Assistant context">
+          <section class="context-card profile-card" id="profile">
+            <div class="card-heading"><span>Employee profile</span><span class="card-kicker">OPTIONAL</span></div>
+            <div class="profile-detail"><div class="large-avatar">N</div><div><strong id="profile-id">No employee selected</strong><span id="profile-status">Add an ID to personalize checks</span></div></div>
+          </section>
+
+          <section class="context-card status-card">
+            <div class="card-heading"><span>Decision trace</span><span class="trace-icon">⌁</span></div>
+            <div class="trace-list" id="trace-list">
+              <div class="trace-item muted"><span class="trace-number">01</span><span>Waiting for your question</span></div>
+              <div class="trace-item muted"><span class="trace-number">02</span><span>Policy evidence will appear here</span></div>
+            </div>
+          </section>
+
+          <section class="context-card sources-card" id="policies">
+            <div class="card-heading"><span>Evidence</span><span class="card-kicker" id="source-count">0 SOURCES</span></div>
+            <div id="sources-list" class="sources-list"><p class="empty-context">Retrieved policy sources will appear here after your first question.</p></div>
+          </section>
+
+          <section class="context-card note-card">
+            <span class="note-mark">i</span>
+            <p>Answers are grounded in the fictional company policy library and employee records.</p>
+          </section>
+        </aside>
+      </section>
+    </main>
+  </div>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, render_template, request
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -20,6 +20,10 @@ def create_app(service: Any | None = None) -> Flask:
     conversation_service = service or ConversationService.from_policy_directory(
         PROJECT_ROOT / "data" / "company_policy"
     )
+
+    @app.get("/")
+    def index():
+        return render_template("index.html")
 
     @app.get("/health")
     def health():
