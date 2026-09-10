@@ -48,11 +48,19 @@ def get_database_url() -> str:
 
 
 def get_engine():
-    return create_engine(get_database_url(), future=True)
+    return create_engine(
+        get_database_url(),
+        future=True,
+        pool_pre_ping=True,
+        pool_recycle=1800,
+    )
 
 
 def initialize_database(csv_path: str | Path | None = None) -> None:
     """Create tables and seed employees from CSV when the table is empty."""
+    if get_database_url().startswith(("postgresql://", "postgresql+psycopg2://")):
+        # Hosted PostgreSQL schemas are managed externally, for example in Supabase.
+        return
     csv_file = Path(csv_path or PROJECT_ROOT / "data" / "employees.csv")
     engine = get_engine()
     Base.metadata.create_all(engine)

@@ -94,6 +94,10 @@ def create_app(service: Any | None = None) -> Flask:
     def handle_value_error(error: ValueError):
         return jsonify({"error": str(error)}), 400
 
+    @app.errorhandler(404)
+    def handle_not_found(error):
+        return jsonify({"error": "The requested resource was not found."}), 404
+
     @app.errorhandler(Exception)
     def handle_unexpected_error(error: Exception):
         app.logger.exception("Unhandled API error", exc_info=error)
@@ -104,3 +108,6 @@ def create_app(service: Any | None = None) -> Flask:
 
 if __name__ == "__main__":
     create_app().run(debug=True, host="127.0.0.1", port=5000)
+
+
+app = create_app()

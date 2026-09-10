@@ -2,24 +2,27 @@
 
 from __future__ import annotations
 
+import os
 import pickle
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
 
-DEFAULT_MODEL_NAME = "nomic-embed-text"
+DEFAULT_MODEL_NAME = os.getenv("GEMINI_EMBED_MODEL", "models/gemini-embedding-001")
 DEFAULT_MIN_SCORE = 0.70
 
 
 def _load_dependencies():
     try:
         import faiss
-        from langchain_ollama import OllamaEmbeddings
+        from dotenv import load_dotenv
+        from langchain_google_genai import GoogleGenerativeAIEmbeddings
     except ImportError as error:
         raise RuntimeError(
             "Day 2 dependencies are missing. Install requirements.txt in the project venv."
         ) from error
-    return faiss, OllamaEmbeddings
+    load_dotenv()
+    return faiss, GoogleGenerativeAIEmbeddings
 
 
 class PolicyVectorStore:
@@ -30,9 +33,9 @@ class PolicyVectorStore:
         model_name: str = DEFAULT_MODEL_NAME,
         chunks: Iterable[Dict[str, Any]] | None = None,
     ) -> None:
-        _, ollama_embeddings = _load_dependencies()
+        _, google_embeddings = _load_dependencies()
         self.model_name = model_name
-        self.model = ollama_embeddings(model=model_name)
+        self.model = google_embeddings(model=model_name)
         self.chunks: List[Dict[str, Any]] = list(chunks or [])
         self.index = None
         if self.chunks:

@@ -227,8 +227,8 @@ document.querySelector("#exit-button").addEventListener("click", () => {
 elements.clear.addEventListener("click", async () => { if (!state.conversationId) return; await fetch(`/conversations/${state.conversationId}/clear`, { method: "POST" }); elements.messages.innerHTML = ""; elements.conversationLabel.textContent = "Cleared conversation"; showWelcomeIfConversationEmpty(); });
 document.querySelectorAll(".prompt-link").forEach((button) => button.addEventListener("click", () => { elements.question.value = button.dataset.prompt; elements.question.focus(); }));
 
-elements.uploadButton.addEventListener("click", () => elements.policyFile.click());
-elements.policyFile.addEventListener("change", async () => {
+elements.uploadButton?.addEventListener("click", () => elements.policyFile?.click());
+elements.policyFile?.addEventListener("change", async () => {
   const file = elements.policyFile.files[0];
   if (!file) return;
   elements.uploadStatus.textContent = `Uploading ${file.name}...`;
@@ -241,7 +241,7 @@ elements.policyFile.addEventListener("change", async () => {
     if (!response.ok) throw new Error(data.error || "Upload failed.");
     elements.uploadStatus.textContent = `${data.source} is awaiting review.`;
     elements.uploadStatus.className = "upload-status visible success";
-    elements.uploadDialog.showModal();
+    elements.uploadDialog?.showModal();
   } catch (error) {
     elements.uploadStatus.textContent = error.message;
     elements.uploadStatus.className = "upload-status visible error";
@@ -249,7 +249,7 @@ elements.policyFile.addEventListener("change", async () => {
     elements.policyFile.value = "";
   }
 });
-elements.uploadDialogClose.addEventListener("click", () => elements.uploadDialog.close());
+elements.uploadDialogClose?.addEventListener("click", () => elements.uploadDialog?.close());
 document.querySelectorAll(".nav-item").forEach((item) => item.addEventListener("click", (event) => {
   event.preventDefault();
   switchView(item.dataset.view);

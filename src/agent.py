@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import os
 from pathlib import Path
 from typing import Any, Dict
 
@@ -28,15 +29,18 @@ class TravelAssistant:
 
     @classmethod
     def from_policy_directory(
-        cls, policy_dir: str | Path, llm_model: str = "qwen2.5:1.5b"
+        cls, policy_dir: str | Path, llm_model: str | None = None
     ) -> "TravelAssistant":
         try:
-            from langchain_ollama import ChatOllama
+            from dotenv import load_dotenv
+            from langchain_google_genai import ChatGoogleGenerativeAI
         except ImportError as error:
-            raise RuntimeError("Install langchain-ollama before creating the assistant.") from error
+            raise RuntimeError("Install langchain-google-genai before creating the assistant.") from error
+        load_dotenv()
+        llm_model = llm_model or os.getenv("GEMINI_CHAT_MODEL", "gemini-3.6-flash")
         return cls(
             PolicyRAG.from_policy_directory(policy_dir),
-            ChatOllama(model=llm_model, temperature=0),
+            ChatGoogleGenerativeAI(model=llm_model, temperature=0),
         )
 
     def answer(self, question: str) -> Dict[str, Any]:
