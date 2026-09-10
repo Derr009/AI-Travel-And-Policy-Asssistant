@@ -1,4 +1,4 @@
-const state = { conversationId: null, busy: false };
+const state = { conversationId: null, busy: false, historyRequest: 0, historyTimer: null };
 
 const elements = {
   form: document.querySelector("#ask-form"),
@@ -81,8 +81,21 @@ function setProfile() {
   elements.profileViewAvatar.textContent = numericId || "N";
   elements.profileViewId.textContent = id || "No employee selected";
   elements.profileViewStatus.textContent = id ? "Profile context ready for validation" : "Enter an ID in the Assistant to load a profile.";
-  loadConversationHistory(id);
+  window.clearTimeout(state.historyTimer);
+  state.historyTimer = window.setTimeout(() => loadConversationHistory(id), 250);
   showWelcomeIfConversationEmpty();
+}
+
+function historyEmployeeId() {
+  const fieldId = elements.employeeId.value.trim().toUpperCase();
+  const questionId = elements.question.value.match(/\bEMP\d{3}\b/i)?.[0]?.toUpperCase();
+  return fieldId || questionId || "";
+}
+
+function scheduleHistoryLookup() {
+  window.clearTimeout(state.historyTimer);
+  const employeeId = historyEmployeeId();
+  state.historyTimer = window.setTimeout(() => loadConversationHistory(employeeId), 250);
 }
 
 function showWelcomeIfConversationEmpty() {
@@ -94,6 +107,7 @@ function showWelcomeIfConversationEmpty() {
 }
 
 async function loadConversationHistory(employeeId) {
+  const requestId = ++state.historyRequest;
   if (!employeeId) {
     elements.history.innerHTML = '<span class="history-empty">Add an employee ID to view saved conversations.</span>';
     return;
@@ -101,6 +115,7 @@ async function loadConversationHistory(employeeId) {
   try {
     const response = await fetch(`/conversations?user_id=${encodeURIComponent(employeeId)}`);
     const data = await response.json();
+    if (requestId !== state.historyRequest) return;
     if (!data.conversations.length) {
       elements.history.innerHTML = '<span class="history-empty">No saved conversations for this ID.</span>';
       return;
@@ -185,7 +200,10 @@ async function ask(question) {
 
 elements.form.addEventListener("submit", (event) => { event.preventDefault(); const question = elements.question.value.trim(); if (!question) return; elements.question.value = ""; ask(question); });
 elements.question.addEventListener("keydown", (event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); elements.form.requestSubmit(); } });
-elements.question.addEventListener("input", showWelcomeIfConversationEmpty);
+elements.question.addEventListener("input", () => {
+  showWelcomeIfConversationEmpty();
+  scheduleHistoryLookup();
+});
 elements.employeeId.addEventListener("input", setProfile);
 function resetConversation() {
   switchView("assistant");
