@@ -14,3 +14,4 @@ __pycache__/
 chroma_db/
 faiss_index/
 *.db
+data/company_policy_pending/

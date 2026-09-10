@@ -316,6 +316,46 @@ curl -X POST http://127.0.0.1:5000/ask \
 
 The response includes the answer, route, sources, retrieved chunks, tool results when applicable, recent messages, and stored state.
 
+### Policy upload
+
+The Assistant composer includes a `+` upload action for fictional `.txt` policy documents:
+
+```bash
+curl -X POST http://127.0.0.1:5000/policies/upload \
+      -F "file=@data/company_policy/new_policy.txt"
+```
+
+Uploaded files are validated for extension, UTF-8 encoding, non-empty content, and a 1 MB size limit. They are stored in `data/company_policy_pending/` and marked as pending review. They are **not** added to the active RAG index and cannot affect answers until an approval workflow is implemented.
+
+The UI displays:
+
+```text
+Document uploaded and awaiting review. It will not affect answers yet.
+```
+
+This separation prevents an arbitrary external document from silently changing policy answers.
+
+### Employee and manager usage
+
+Employee ID is optional in the training environment:
+
+- Employees can enter an ID such as `EMP001` for personalized eligibility and trip checks.
+- Managers can leave the field blank and ask questions about another employee, for example: `Can EMP001 take an airport trip?`
+- Employee IDs are normalized to uppercase, so `emp001` and `EMP001` resolve consistently.
+
+When an Employee ID is entered, the sidebar loads recent conversations associated with that ID. Selecting a conversation reopens its stored messages. This is intentionally open for testing; production must enforce authentication and conversation ownership.
+
+### Frontend views
+
+The Flask frontend currently provides:
+
+- **Assistant**: chat, policy answers, tools, sources, decision trace, and uploads.
+- **Policy library**: read-only policy document index.
+- **Employee profile**: read-only employee context including ID, country, type, and status.
+- **Previous conversations**: recent conversation IDs for the entered Employee ID.
+
+The frontend uses the same Flask API and PostgreSQL memory layer as the terminal client.
+
 ## Terminal Chat Client
 
 For interactive testing without the frontend:
@@ -348,6 +388,7 @@ PYTHONPATH=src:. python scripts/test_mcp.py
 PYTHONPATH=src:. python scripts/test_mcp_client.py
 python scripts/test_api.py
 PYTHONPATH=src python scripts/test_scenarios.py
+python scripts/test_policy_upload.py
 ```
 
 The acceptance suite covers 19 cases across:
@@ -398,7 +439,8 @@ Technical exception details are logged server-side and are not returned to API u
 - MCP is exposed and integration-tested, but the Flask agent currently calls Python tools directly rather than routing every tool call through an MCP client.
 - Authentication, authorization, rate limiting, and request tracing are not implemented.
 - Conversation summarization for very long histories is not implemented; the application currently uses bounded recent history plus structured state.
-- The frontend is not yet connected to the backend API.
+- Uploaded policy documents currently require a future review/approval workflow before becoming active.
+- The frontend is connected to the backend API, but the Policy library view is currently read-only.
 - Policy answers depend on the fictional documents in `data/company_policy` and are not a substitute for real corporate policy guidance.
 
 ## Security Notes

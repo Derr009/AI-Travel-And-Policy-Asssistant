@@ -22,6 +22,14 @@ class PolicyRAG:
     def search_policy(self, query: str, top_k: int = 3) -> List[Dict[str, Any]]:
         return self.store.search(query, top_k=top_k)
 
+    def reload_from_policy_directory(self, policy_dir: str | Path) -> int:
+        """Rebuild the live index after policies are added or changed."""
+        chunks = process_all_policies(str(policy_dir))
+        if not chunks:
+            raise ValueError("The policy directory contains no usable documents.")
+        self.store.build(chunks)
+        return len(chunks)
+
     def build_context(self, query: str, top_k: int = 3) -> Dict[str, Any]:
         results = self.search_policy(query, top_k=top_k)
         return {

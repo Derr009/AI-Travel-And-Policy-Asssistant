@@ -90,6 +90,30 @@ class ConversationMemory:
             session.commit()
             return str(conversation.conversation_id)
 
+    def list_conversations(self, user_id: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """List recent conversations for an employee in the open training environment."""
+        if not user_id or limit < 1:
+            return []
+        with Session(self.engine) as session:
+            conversations = list(
+                session.scalars(
+                    select(Conversation)
+                    .where(Conversation.user_id == user_id.strip().upper())
+                    .order_by(Conversation.updated_at.desc())
+                    .limit(limit)
+                )
+            )
+        return [
+            {
+                "conversation_id": str(conversation.conversation_id),
+                "user_id": conversation.user_id,
+                "created_at": conversation.created_at.isoformat(),
+                "updated_at": conversation.updated_at.isoformat(),
+                "status": conversation.status,
+            }
+            for conversation in conversations
+        ]
+
     def add_message(self, conversation_id: str, role: str, content: str) -> Dict[str, Any]:
         if role not in {"system", "user", "assistant", "tool"}:
             raise ValueError("Invalid message role.")

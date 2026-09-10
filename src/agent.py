@@ -51,9 +51,7 @@ class TravelAssistant:
             result = check_employee_eligibility(employee_id)
             return {
                 "route": "tool",
-                "answer": self._generate_answer(
-                    question, self._format_eligibility(result), "Employee tool result"
-                ),
+                "answer": self._format_eligibility(result),
                 "sources": [],
                 "tool_results": {"eligibility": result},
             }
@@ -152,9 +150,19 @@ class TravelAssistant:
     @staticmethod
     def _format_eligibility(result: Dict[str, Any]) -> str:
         if result["status"] == "Not Found":
-            return f"Employee {result['employee_id']} was not found."
+            return f"{result['employee_id']} was not found."
+        if result["status"] == "Approval Required":
+            return (
+                f"{result['employee_id']} requires approval for business travel. "
+                f"Country: {result['country']}. Employee type: {result['employee_type']}."
+            )
+        if result["status"] == "Not Eligible":
+            return (
+                f"{result['employee_id']} is not eligible for business travel. "
+                f"Country: {result['country']}. Employee type: {result['employee_type']}."
+            )
         return (
-            f"{result['employee_id']}: {result['status']}. "
+            f"{result['employee_id']} is eligible for business travel. "
             f"Country: {result['country']}. Employee type: {result['employee_type']}."
         )
 

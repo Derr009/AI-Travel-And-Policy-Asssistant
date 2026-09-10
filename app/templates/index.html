@@ -4,7 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="AI-powered corporate travel and policy assistant">
-  <title>Atlas | Travel Policy Assistant</title>
+  <title>Uber Atlas | Corporate Travel &amp; Compliance Operations</title>
+  <link rel="icon" type="image/png" sizes="48x48" href="https://img.icons8.com/pulsar-line/48/view-file.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -16,26 +17,31 @@
       <div class="brand-lockup">
         <div class="brand-mark">A</div>
         <div>
-          <strong>Atlas</strong>
-          <span>Travel intelligence</span>
+          <strong>Uber Atlas</strong>
+          <span>Corporate Travel &amp; Compliance Operations</span>
         </div>
       </div>
 
+      <button class="sidebar-new-chat" id="sidebar-new-chat" type="button"><span aria-hidden="true">＋</span> New conversation</button>
+
       <nav class="nav-list">
-        <a class="nav-item active" href="#assistant"><span class="nav-icon">◉</span>Assistant</a>
-        <a class="nav-item" href="#policies"><span class="nav-icon">▤</span>Policy library</a>
-        <a class="nav-item" href="#profile"><span class="nav-icon">◎</span>Employee profile</a>
+        <a class="nav-item active" href="#assistant" data-view="assistant"><span class="nav-icon">◉</span>Assistant</a>
+        <a class="nav-item" href="#policies" data-view="policies"><span class="nav-icon">▤</span>Policy library</a>
+        <a class="nav-item" href="#profile" data-view="profile"><span class="nav-icon">◎</span>Employee profile</a>
       </nav>
 
       <div class="sidebar-divider"></div>
+      <div class="history-heading"><span>Previous conversations</span><small>Enter an EMP ID for personalized responses and history.</small></div>
+      <div class="conversation-history" id="conversation-history"><span class="history-empty">Add an employee ID to view saved conversations.</span></div>
+      <div class="sidebar-divider"></div>
       <div class="sidebar-label">Quick prompts</div>
-      <button class="prompt-link" data-prompt="What is the standard travel limit in India?">India travel limit <span>↗</span></button>
-      <button class="prompt-link" data-prompt="Are late-night airport trips allowed?">Late-night airport rules <span>↗</span></button>
-      <button class="prompt-link" data-prompt="What information is required for an expense?">Expense requirements <span>↗</span></button>
+      <button class="prompt-link" data-prompt="What is the standard travel limit in India?"><span>India Limits &amp; Thresholds</span><span class="prompt-arrow" aria-hidden="true">→</span></button>
+      <button class="prompt-link" data-prompt="Are late-night airport trips allowed?"><span>Late-Night Airport Guidance</span><span class="prompt-arrow" aria-hidden="true">→</span></button>
+      <button class="prompt-link" data-prompt="What information is required for an expense?"><span>Reimbursement Checklist</span><span class="prompt-arrow" aria-hidden="true">→</span></button>
 
       <div class="sidebar-footer">
         <div class="system-status"><span class="status-dot"></span><span>Local systems online</span></div>
-        <span class="version">v0.1 / training environment</span>
+        <span class="version">v0.1 / Training Environment</span>
       </div>
     </aside>
 
@@ -43,45 +49,74 @@
       <header class="topbar">
         <div class="breadcrumb"><span>Workspace</span><b>/</b><strong>Assistant</strong></div>
         <div class="topbar-actions">
-          <span class="connection-pill"><span class="status-dot"></span> Ollama connected</span>
-          <button class="icon-button" id="new-chat-button" title="Start a new conversation" aria-label="Start a new conversation">＋</button>
-          <div class="profile-chip"><span class="profile-avatar">N</span><span>Employee</span></div>
+          <button class="exit-button" id="exit-button" type="button">Exit assistant</button>
         </div>
       </header>
 
       <section class="workspace-grid">
         <div class="chat-column">
+          <section class="secondary-view policy-view" data-view-panel="policies" aria-labelledby="policy-library-title" hidden>
+            <div class="view-heading"><div><p class="eyebrow">REFERENCE MATERIAL</p><h1 id="policy-library-title">Policy library</h1><p class="view-description">Browse the governing documents used to answer travel and compliance questions.</p></div><span class="read-only-badge">READ ONLY</span></div>
+            <div class="policy-list">
+              <button class="policy-row" type="button"><span class="policy-icon">▤</span><span><strong>India travel policy</strong><small>Travel limits, late-night rules, and eligible business trips</small></span><span class="row-arrow">→</span></button>
+              <button class="policy-row" type="button"><span class="policy-icon">▤</span><span><strong>United States travel policy</strong><small>Country limits and approval requirements</small></span><span class="row-arrow">→</span></button>
+              <button class="policy-row" type="button"><span class="policy-icon">▤</span><span><strong>Airport travel policy</strong><small>Airport eligibility, documentation, and thresholds</small></span><span class="row-arrow">→</span></button>
+              <button class="policy-row" type="button"><span class="policy-icon">▤</span><span><strong>Expense and approval policies</strong><small>Submission requirements and escalation rules</small></span><span class="row-arrow">→</span></button>
+            </div>
+            <div class="view-note">Document browsing is read-only for now. Ask the Assistant to retrieve supporting policy passages.</div>
+          </section>
+
+          <section class="secondary-view profile-view" data-view-panel="profile" aria-labelledby="employee-profile-title" hidden>
+            <div class="view-heading"><div><p class="eyebrow">EMPLOYEE RECORD</p><h1 id="employee-profile-title">Employee profile</h1><p class="view-description">A read-only view of the employee context used for travel checks.</p></div><span class="read-only-badge">READ ONLY</span></div>
+            <div class="employee-record">
+              <div class="record-avatar" id="profile-view-avatar">N</div>
+              <div class="record-identity"><span class="record-label">EMPLOYEE ID</span><strong id="profile-view-id">No employee selected</strong><span id="profile-view-status">Enter an ID in the Assistant to load a profile.</span></div>
+            </div>
+            <div class="record-grid">
+              <div><span class="record-label">COUNTRY</span><strong id="profile-view-country">Not available</strong></div>
+              <div><span class="record-label">EMPLOYEE TYPE</span><strong id="profile-view-type">Not available</strong></div>
+              <div><span class="record-label">DEPARTMENT</span><strong>Corporate operations</strong></div>
+              <div><span class="record-label">ACCESS</span><strong>Policy validation</strong></div>
+            </div>
+            <div class="view-note">Profile details are used to validate eligibility and trip requests. Editing employee records is not available here.</div>
+          </section>
+
           <div class="intro-row">
             <div>
               <p class="eyebrow">CORPORATE TRAVEL / POLICY DESK</p>
-              <h1>What are we navigating today?</h1>
-              <p class="intro-copy">Ask about travel limits, eligibility, approvals, and reimbursements.</p>
+              <h1>Verify Trip Compliance &amp; Policy Limits</h1>
+              <p class="intro-copy">Get instant policy verification, check travel limits, or evaluate trip eligibility against corporate governance.</p>
             </div>
-            <div class="date-stamp"><span>SESSION</span><strong id="conversation-label">New conversation</strong></div>
           </div>
 
-          <section class="chat-panel" aria-label="Conversation">
+          <section class="chat-panel assistant-view" data-view-panel="assistant" aria-label="Conversation">
             <div class="chat-toolbar">
               <div class="toolbar-title"><span class="live-pulse"></span><span>Assistant online</span></div>
-              <button class="clear-button" id="clear-button">Clear thread</button>
+              <div class="chat-toolbar-actions">
+                <div class="session-chip"><span>SESSION</span><strong id="conversation-label">New conversation</strong></div>
+                <button class="clear-button" id="clear-button">Clear thread</button>
+              </div>
             </div>
             <div class="messages" id="messages" aria-live="polite">
               <div class="welcome-message" id="welcome-message">
-                <div class="welcome-orbit"><span>✦</span></div>
-                <h2>Bring me the question.</h2>
+                <div class="welcome-orbit"><img class="idle-search-icon" src="https://img.icons8.com/pulsar-line/48/view-file.png" alt="View policy documents"></div>
+                <h2>Policy Query &amp; Validation Console</h2>
                 <p>I’ll find the governing policy, check the details, and show you what supports the answer.</p>
               </div>
             </div>
             <form class="composer" id="ask-form">
               <div class="composer-meta">
-                <label for="employee-id">Employee ID</label>
+                <label for="employee-id">Employee ID:</label>
                 <input id="employee-id" name="employee_id" type="text" placeholder="EMP001" autocomplete="off">
-                <span class="composer-hint">Enter to send · Shift + Enter for a new line</span>
+                <span class="composer-hint">Optional for managers · add an ID for personal checks</span>
               </div>
               <div class="composer-input-row">
-                <textarea id="question" name="question" rows="1" placeholder="Ask about a policy or trip..." required></textarea>
-                <button class="send-button" type="submit" aria-label="Send question" title="Send question">↗</button>
+                <button class="attach-button" id="policy-upload-button" type="button" title="Upload a policy document" aria-label="Upload a policy document">＋</button>
+                <input id="policy-file" type="file" accept=".txt,text/plain" hidden>
+                <textarea id="question" name="question" rows="1" placeholder="e.g., Can EMP001 take an airport trip costing ₹2,500 tonight?" required></textarea>
+                <button class="send-button" type="submit" aria-label="Send question" title="Send question"><span aria-hidden="true">→</span></button>
               </div>
+              <div class="upload-status" id="upload-status" role="status" aria-live="polite"></div>
             </form>
           </section>
         </div>
@@ -89,7 +124,7 @@
         <aside class="context-column" aria-label="Assistant context">
           <section class="context-card profile-card" id="profile">
             <div class="card-heading"><span>Employee profile</span><span class="card-kicker">OPTIONAL</span></div>
-            <div class="profile-detail"><div class="large-avatar">N</div><div><strong id="profile-id">No employee selected</strong><span id="profile-status">Add an ID to personalize checks</span></div></div>
+            <div class="profile-detail"><div class="large-avatar" id="profile-avatar">N</div><div><strong id="profile-id">No employee selected</strong><span id="profile-status">Add an ID to personalize checks</span></div></div>
           </section>
 
           <section class="context-card status-card">
@@ -114,5 +149,11 @@
     </main>
   </div>
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <dialog class="upload-dialog" id="upload-dialog">
+    <div class="upload-dialog-icon">✓</div>
+    <h2>Document received</h2>
+    <p id="upload-dialog-message">Document uploaded and awaiting review. It will not affect answers yet.</p>
+    <button id="upload-dialog-close" type="button">Continue</button>
+  </dialog>
 </body>
 </html>
