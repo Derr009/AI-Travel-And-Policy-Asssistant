@@ -318,22 +318,22 @@ The response includes the answer, route, sources, retrieved chunks, tool results
 
 ### Policy upload
 
-The Assistant composer includes a `+` upload action for fictional `.txt` policy documents:
+The Assistant composer includes a `+` upload button for fictional `.txt` policy documents. Clicking `+` opens a **pre-upload warning modal** that informs the user this is a test environment and that documents become active immediately without security scanning. Clicking **Continue** opens the OS file picker.
 
 ```bash
 curl -X POST http://127.0.0.1:5000/policies/upload \
       -F "file=@data/company_policy/new_policy.txt"
 ```
 
-Uploaded files are validated for extension, UTF-8 encoding, non-empty content, and a 1 MB size limit. They are stored in `data/company_policy_pending/` and marked as pending review. They are **not** added to the active RAG index and cannot affect answers until an approval workflow is implemented.
+Uploaded files are validated for extension, UTF-8 encoding, non-empty content, and a 1 MB size limit. In the current test environment they are written directly to `data/company_policy/` and the RAG vector index is reloaded immediately so answers reflect the new document at once.
 
-The UI displays:
+After a successful upload the document appears as a new clickable row in the **Policy Library** view, and the upload status bar reads:
 
 ```text
-Document uploaded and awaiting review. It will not affect answers yet.
+<filename> is active & indexed in AI search.
 ```
 
-This separation prevents an arbitrary external document from silently changing policy answers.
+> **Note:** In production, uploaded documents would require a security and compliance review before becoming active in the RAG index.
 
 ### Employee and manager usage
 
@@ -349,10 +349,19 @@ When an Employee ID is entered, the sidebar loads recent conversations associate
 
 The Flask frontend currently provides:
 
-- **Assistant**: chat, policy answers, tools, sources, decision trace, and uploads.
-- **Policy library**: read-only policy document index.
+- **Assistant**: chat, policy answers, tools, sources, decision trace, and uploads. Clicking a source file in the Evidence panel navigates to the Policy Library and opens the document inspector.
+- **Policy library**: read-only policy document index. Each row shows an icon, title, and subtitle. Clicking any row opens a full-screen **Policy Document Inspector** modal with the raw policy text. Custom-uploaded documents appear as additional rows immediately after upload. An **external governance portal** link opens the company's public policy site in a new tab.
 - **Employee profile**: read-only employee context including ID, country, type, and status.
-- **Previous conversations**: recent conversation IDs for the entered Employee ID.
+- **Previous conversations**: recent conversation IDs for the entered Employee ID with SVG trash-bin delete buttons.
+- **Test environment notice**: a one-time modal shown on first load informing users that authentication and RBAC are disabled.
+
+UI design notes:
+
+- All emoji icons replaced with inline SVG icons (Feather-style) for a consistent, professional look.
+- Policy library rows use a Flexbox card layout with full-width alignment, `IN`/`US` text badges and document SVG icons, and a smooth hover transition on the action arrow.
+- Navigation between views (Assistant / Policy Library / Employee Profile) is handled via `switchView()` with an explicit `[hidden] { display: none !important; }` CSS rule to guarantee panel visibility toggling works regardless of element `display` type.
+- Evidence section source file names are displayed at `13px` / `font-weight: 600` for readability.
+- The Policy Inspector close button (`×`) and **Close Inspector** button are wired inside `DOMContentLoaded` so they attach after the `<dialog>` element is parsed.
 
 The frontend uses the same Flask API and PostgreSQL memory layer as the terminal client.
 
@@ -439,8 +448,8 @@ Technical exception details are logged server-side and are not returned to API u
 - MCP is exposed and integration-tested, but the Flask agent currently calls Python tools directly rather than routing every tool call through an MCP client.
 - Authentication, authorization, rate limiting, and request tracing are not implemented.
 - Conversation summarization for very long histories is not implemented; the application currently uses bounded recent history plus structured state.
-- Uploaded policy documents currently require a future review/approval workflow before becoming active.
-- The frontend is connected to the backend API, but the Policy library view is currently read-only.
+- In the test environment, uploaded policy documents become active in the RAG index immediately. A production deployment would require a security review workflow before activation.
+- The Policy library view is read-only for the built-in documents; dynamically uploaded documents are appended at runtime but do not persist across server restarts.
 - Policy answers depend on the fictional documents in `data/company_policy` and are not a substitute for real corporate policy guidance.
 
 ## Security Notes
