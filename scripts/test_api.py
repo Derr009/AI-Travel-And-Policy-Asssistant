@@ -16,7 +16,7 @@ class FakeMemory:
     def get_recent_messages(self, conversation_id):
         return self.messages
 
-    def clear_conversation(self, conversation_id):
+    def delete_conversation(self, conversation_id):
         self.messages.clear()
 
 
@@ -40,8 +40,8 @@ def main():
     assert response.status_code == 200
     assert response.get_json()["answer"] == "Test answer"
     assert client.post("/ask", json={}).status_code == 400
-    assert client.post("/conversations/test-conversation/clear").status_code == 200
-    print("API test passed: health, conversation, ask, validation, and clear routes")
+    assert client.delete("/conversations/test-conversation").status_code == 200
+    print("API test passed: health, conversation, ask, validation, and delete routes")
 
 
 if __name__ == "__main__":

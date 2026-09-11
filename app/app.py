@@ -32,6 +32,18 @@ def create_app(service: Any | None = None) -> Flask:
     def health():
         return jsonify({"status": "ok", "service": "travel-policy-assistant"})
 
+    @app.get("/policies/raw/<filename>")
+    def get_raw_policy(filename: str):
+        safe_name = secure_filename(filename)
+        policy_file = policy_directory / safe_name
+        if not policy_file.exists() or not policy_file.is_file():
+            return jsonify({"error": "Policy document not found."}), 404
+        try:
+            content = policy_file.read_text(encoding="utf-8")
+            return jsonify({"filename": safe_name, "content": content}), 200
+        except Exception as error:
+            return jsonify({"error": "Could not read policy document."}), 500
+
     @app.post("/policies/upload")
     def upload_policy():
         uploaded_file = request.files.get("file")
@@ -50,10 +62,14 @@ def create_app(service: Any | None = None) -> Flask:
         except UnicodeDecodeError:
             return jsonify({"error": "Policy files must use UTF-8 text."}), 400
 
-        pending_policy_directory.mkdir(parents=True, exist_ok=True)
+        policy_directory.mkdir(parents=True, exist_ok=True)
         uploaded_file.stream.seek(0)
-        uploaded_file.save(pending_policy_directory / filename)
-        return jsonify({"status": "pending_review", "source": filename}), 201
+        file_path = policy_directory / filename
+        uploaded_file.save(file_path)
+        
+        # Live reload Policy RAG vector index so new policy takes effect immediately
+        total_chunks = conversation_service.assistant.rag.reload_from_policy_directory(policy_directory)
+        return jsonify({"status": "active", "source": filename, "chunks": total_chunks}), 201
 
     @app.post("/conversations")
     def create_conversation():

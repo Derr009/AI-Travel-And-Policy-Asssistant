@@ -122,7 +122,26 @@ async function loadConversationHistory(employeeId) {
       elements.mobileHistory.innerHTML = '<span class="history-empty">No saved conversations for this ID.</span>';
       return;
     }
-    const historyItems = data.conversations.map((conversation) => `<div class="history-item"><button class="history-open" type="button" data-conversation-id="${conversation.conversation_id}">${conversation.conversation_id.slice(0, 8)}…<small>${new Date(conversation.updated_at).toLocaleDateString()}</small></button><button class="history-delete" type="button" data-conversation-id="${conversation.conversation_id}" aria-label="Delete conversation ${conversation.conversation_id.slice(0, 8)}" title="Delete conversation">×</button></div>`).join("");
+    const historyItems = data.conversations.map((conversation) => {
+      const shortId = conversation.conversation_id.slice(0, 8);
+      const formattedDate = new Date(conversation.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+      return `
+        <div class="history-item">
+          <button class="history-open" type="button" data-conversation-id="${conversation.conversation_id}">
+            <span class="history-item-title">${shortId}…</span>
+            <small>${formattedDate}</small>
+          </button>
+          <button class="history-delete" type="button" data-conversation-id="${conversation.conversation_id}" aria-label="Delete conversation ${shortId}" title="Delete conversation">
+            <svg class="trash-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+          </button>
+        </div>
+      `;
+    }).join("");
     elements.history.innerHTML = historyItems;
     elements.mobileHistory.innerHTML = historyItems;
     document.querySelectorAll(".history-open").forEach((item) => item.addEventListener("click", () => reopenConversation(item.dataset.conversationId)));
@@ -132,6 +151,86 @@ async function loadConversationHistory(employeeId) {
     elements.mobileHistory.innerHTML = '<span class="history-empty">Conversation history unavailable.</span>';
   }
 }
+
+// Initialize global modal event listeners when DOM loads
+document.addEventListener("DOMContentLoaded", () => {
+  const envDialog = document.querySelector("#test-env-dialog");
+  const dismissBtn = document.querySelector("#test-env-dismiss-btn");
+  if (envDialog && !sessionStorage.getItem("test_env_notice_dismissed")) {
+    envDialog.showModal();
+  }
+  dismissBtn?.addEventListener("click", () => {
+    envDialog?.close();
+    sessionStorage.setItem("test_env_notice_dismissed", "true");
+  });
+
+  // Attach button '+' modal launcher
+  const attachBtn = document.querySelector("#policy-upload-button");
+  const uploadDlg = document.querySelector("#upload-dialog");
+  const continueBtn = document.querySelector("#upload-dialog-continue");
+  const fileInput = document.querySelector("#policy-file");
+
+  attachBtn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    uploadDlg?.showModal();
+  });
+
+  continueBtn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    uploadDlg?.close();
+    fileInput?.click();
+  });
+
+  // Policy inspector close buttons — must attach after <dialog> is parsed
+  document.querySelector("#reader-close")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    document.querySelector("#policy-reader-dialog")?.close();
+  });
+  document.querySelector("#reader-done-btn")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    document.querySelector("#policy-reader-dialog")?.close();
+  });
+});
+
+async function openPolicyReader(filename, title) {
+  const dialog = document.querySelector("#policy-reader-dialog");
+  const titleEl = document.querySelector("#reader-title");
+  const filenameEl = document.querySelector("#reader-filename");
+  const contentEl = document.querySelector("#reader-content");
+  if (!dialog) return;
+
+  titleEl.textContent = title || "Policy Document";
+  filenameEl.textContent = filename;
+  contentEl.textContent = "Fetching document content...";
+  dialog.showModal();
+
+  try {
+    const response = await fetch(`/policies/raw/${encodeURIComponent(filename)}`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Failed to load document.");
+    contentEl.textContent = data.content;
+  } catch (error) {
+    contentEl.textContent = `Error: ${error.message}`;
+  }
+}
+
+function attachPolicyRowListeners() {
+  document.querySelectorAll(".policy-row").forEach((row) => {
+    row.replaceWith(row.cloneNode(true));
+  });
+  document.querySelectorAll(".policy-row").forEach((row) => {
+    row.addEventListener("click", () => {
+      const filename = row.dataset.policyFile;
+      const title = row.dataset.policyTitle;
+      if (filename) openPolicyReader(filename, title);
+    });
+  });
+}
+
+attachPolicyRowListeners();
+
+// Reader close listeners moved into DOMContentLoaded above
 
 async function reopenConversation(conversationId) {
   const response = await fetch(`/conversations/${conversationId}/messages`);
@@ -158,7 +257,13 @@ function switchView(view) {
   document.querySelectorAll(".nav-item").forEach((item) => {
     item.classList.toggle("active", item.dataset.view === view);
   });
-  document.querySelector(".intro-row").hidden = view !== "assistant";
+  const introRow = document.querySelector(".intro-row");
+  if (introRow) introRow.hidden = view !== "assistant";
+  
+  const breadcrumbStrong = document.querySelector(".breadcrumb strong");
+  if (breadcrumbStrong) {
+    breadcrumbStrong.textContent = view === "assistant" ? "Assistant" : view === "policies" ? "Policy Library" : "Employee Profile";
+  }
   document.querySelector(".workspace")?.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -166,7 +271,30 @@ function setTrace(route, sources) {
   const steps = route === "tool+rag" ? ["Employee eligibility checked", "Policy evidence retrieved", "Trip validated and calculated"] : route === "tool" ? ["Employee record checked", "Tool result prepared"] : ["Policy evidence retrieved", "Grounded answer prepared"];
   elements.trace.innerHTML = steps.map((step, index) => `<div class="trace-item"><span class="trace-number">0${index + 1}</span><span>${step}</span></div>`).join("");
   elements.sourceCount.textContent = `${sources.length} SOURCE${sources.length === 1 ? "" : "S"}`;
-  elements.sources.innerHTML = sources.length ? sources.map((source) => `<div class="source-item">${source}</div>`).join("") : '<p class="empty-context">No policy documents were needed for this response.</p>';
+  
+  if (!sources.length) {
+    elements.sources.innerHTML = '<p class="empty-context">No policy documents were needed for this response.</p>';
+    return;
+  }
+
+  elements.sources.innerHTML = sources.map((source) => `
+    <button class="source-item clickable" type="button" data-source-file="${source}" title="Click to view ${source} in Policy Library">
+      <span class="source-file-name">${source}</span>
+      <span class="source-arrow">↗</span>
+    </button>
+  `).join("");
+
+  document.querySelectorAll(".source-item.clickable").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const filename = btn.dataset.sourceFile;
+      if (!filename) return;
+      switchView("policies");
+      
+      const matchingRow = document.querySelector(`.policy-row[data-policy-file="${filename}"]`);
+      const title = matchingRow ? matchingRow.dataset.policyTitle : filename;
+      openPolicyReader(filename, title);
+    });
+  });
 }
 
 async function createConversation() {
@@ -240,7 +368,8 @@ document.querySelector("#exit-button").addEventListener("click", () => {
 });
 document.querySelectorAll(".prompt-link").forEach((button) => button.addEventListener("click", () => { elements.question.value = button.dataset.prompt; elements.question.focus(); }));
 
-elements.uploadButton?.addEventListener("click", () => elements.policyFile?.click());
+// File upload change handler
+
 elements.policyFile?.addEventListener("change", async () => {
   const file = elements.policyFile.files[0];
   if (!file) return;
@@ -252,9 +381,38 @@ elements.policyFile?.addEventListener("change", async () => {
     const response = await fetch("/policies/upload", { method: "POST", body: formData });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Upload failed.");
-    elements.uploadStatus.textContent = `${data.source} is awaiting review.`;
+    
+    // Add uploaded policy as a new row in Policy Library list so user can inspect it
+    const policyList = document.querySelector(".policy-list");
+    if (policyList && !document.querySelector(`.policy-row[data-policy-file="${data.source}"]`)) {
+      const newRow = document.createElement("button");
+      newRow.className = "policy-row";
+      newRow.type = "button";
+      newRow.dataset.policyFile = data.source;
+      newRow.dataset.policyTitle = data.source;
+      newRow.innerHTML = `
+        <div class="policy-row-left">
+          <span class="policy-icon">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+          </span>
+          <div class="policy-info">
+            <strong>${data.source}</strong>
+            <small>Custom uploaded policy · ${data.chunks || 1} chunks active in AI assistant</small>
+          </div>
+        </div>
+        <span class="row-arrow">Inspect Document →</span>
+      `;
+      policyList.appendChild(newRow);
+      attachPolicyRowListeners();
+    }
+
+    elements.uploadStatus.textContent = `${data.source} is active & indexed in AI search.`;
     elements.uploadStatus.className = "upload-status visible success";
-    elements.uploadDialog?.showModal();
   } catch (error) {
     elements.uploadStatus.textContent = error.message;
     elements.uploadStatus.className = "upload-status visible error";
@@ -262,7 +420,6 @@ elements.policyFile?.addEventListener("change", async () => {
     elements.policyFile.value = "";
   }
 });
-elements.uploadDialogClose?.addEventListener("click", () => elements.uploadDialog?.close());
 document.querySelectorAll(".nav-item").forEach((item) => item.addEventListener("click", (event) => {
   event.preventDefault();
   switchView(item.dataset.view);
