@@ -23,6 +23,7 @@ const elements = {
   sourceCount: document.querySelector("#source-count"),
   trace: document.querySelector("#trace-list"),
   history: document.querySelector("#conversation-history"),
+  mobileHistory: document.querySelector("#mobile-conversation-history"),
   uploadButton: document.querySelector("#policy-upload-button"),
   policyFile: document.querySelector("#policy-file"),
   uploadStatus: document.querySelector("#upload-status"),
@@ -110,6 +111,7 @@ async function loadConversationHistory(employeeId) {
   const requestId = ++state.historyRequest;
   if (!employeeId) {
     elements.history.innerHTML = '<span class="history-empty">Add an employee ID to view saved conversations.</span>';
+    elements.mobileHistory.innerHTML = '<span class="history-empty">Add an employee ID to view saved conversations.</span>';
     return;
   }
   try {
@@ -118,12 +120,16 @@ async function loadConversationHistory(employeeId) {
     if (requestId !== state.historyRequest) return;
     if (!data.conversations.length) {
       elements.history.innerHTML = '<span class="history-empty">No saved conversations for this ID.</span>';
+      elements.mobileHistory.innerHTML = '<span class="history-empty">No saved conversations for this ID.</span>';
       return;
     }
-    elements.history.innerHTML = data.conversations.map((conversation) => `<button class="history-item" type="button" data-conversation-id="${conversation.conversation_id}">${conversation.conversation_id.slice(0, 8)}…<small>${new Date(conversation.updated_at).toLocaleDateString()}</small></button>`).join("");
-    elements.history.querySelectorAll(".history-item").forEach((item) => item.addEventListener("click", () => reopenConversation(item.dataset.conversationId)));
+    const historyItems = data.conversations.map((conversation) => `<button class="history-item" type="button" data-conversation-id="${conversation.conversation_id}">${conversation.conversation_id.slice(0, 8)}…<small>${new Date(conversation.updated_at).toLocaleDateString()}</small></button>`).join("");
+    elements.history.innerHTML = historyItems;
+    elements.mobileHistory.innerHTML = historyItems;
+    document.querySelectorAll(".history-item").forEach((item) => item.addEventListener("click", () => reopenConversation(item.dataset.conversationId)));
   } catch (error) {
     elements.history.innerHTML = '<span class="history-empty">Conversation history unavailable.</span>';
+    elements.mobileHistory.innerHTML = '<span class="history-empty">Conversation history unavailable.</span>';
   }
 }
 

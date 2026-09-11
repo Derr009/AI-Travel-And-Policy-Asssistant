@@ -164,6 +164,30 @@ button { cursor: pointer; }
 .context-column .profile-detail span, .context-column .trace-item, .context-column .empty-context { color: #777b77; }
 .context-column .trace-item.muted { color: #777b77; }
 .context-column .source-item { color: #3f443f; }
+.mobile-history { display: none; }
+
+/* Keep saved conversations reachable on short laptop and tablet screens. */
+@media (min-width: 651px) {
+  .sidebar { overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+  .sidebar-footer { margin-top: 28px; }
+  .conversation-history { min-height: 92px; max-height: min(24vh, 220px); overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+}
+
+@media (max-width: 650px) {
+  body { height: auto; min-height: 100dvh; overflow-y: auto; }
+  .app-shell, .workspace { height: auto; min-height: 100dvh; }
+  .sidebar { height: 58px; }
+  .workspace { padding-top: 58px; overflow: visible; }
+  .workspace-grid { display: block; padding-bottom: 20px !important; }
+  .chat-column { min-height: auto; }
+  .mobile-history { display: block; margin: 0 0 16px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: #ffffff; }
+  .mobile-history .history-heading { padding: 0 0 10px; }
+  .mobile-history .conversation-history { min-height: 72px; max-height: 156px; overflow-y: auto; overscroll-behavior: contain; }
+  .context-column { display: flex; max-height: none; overflow: visible; margin-top: 18px; border-left: 0; border-top: 1px solid var(--line); padding: 18px 0 0; }
+  .context-card { display: block; }
+  .chat-panel { min-height: 520px; }
+  .composer-hint { display: none; }
+}
 .note-card { align-items: flex-start; gap: 12px; }
 .note-card .note-mark { flex: 0 0 18px; margin-top: 0; }
 .note-card p { flex: 1; margin: 0; line-height: 1.45; }
