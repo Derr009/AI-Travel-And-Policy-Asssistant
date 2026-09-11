@@ -164,6 +164,11 @@ button { cursor: pointer; }
 .context-column .profile-detail span, .context-column .trace-item, .context-column .empty-context { color: #777b77; }
 .context-column .trace-item.muted { color: #777b77; }
 .context-column .source-item { color: #3f443f; }
+.history-item { display: flex; align-items: center; gap: 2px; padding: 2px; border-radius: 7px; }
+.history-open { display: flex; flex: 1; justify-content: space-between; gap: 8px; min-width: 0; border: 0; border-radius: 6px; background: transparent; padding: 8px; color: inherit; font-family: "DM Mono", monospace; font-size: inherit; text-align: left; }
+.history-open:hover { background: #f1f3f0; color: #171817; }
+.history-delete { display: grid; place-items: center; width: 25px; height: 25px; border: 0; border-radius: 5px; background: transparent; color: #989b97; font-size: 17px; line-height: 1; }
+.history-delete:hover { background: #f9e9e6; color: #a34f42; }
 .mobile-history { display: none; }
 
 /* Keep saved conversations reachable on short laptop and tablet screens. */

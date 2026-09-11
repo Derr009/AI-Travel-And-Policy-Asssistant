@@ -9,7 +9,6 @@ const elements = {
   send: document.querySelector(".send-button"),
   newChat: document.querySelector("#new-chat-button"),
   sidebarNewChat: document.querySelector("#sidebar-new-chat"),
-  clear: document.querySelector("#clear-button"),
   conversationLabel: document.querySelector("#conversation-label"),
   profileId: document.querySelector("#profile-id"),
   profileAvatar: document.querySelector("#profile-avatar"),
@@ -123,10 +122,11 @@ async function loadConversationHistory(employeeId) {
       elements.mobileHistory.innerHTML = '<span class="history-empty">No saved conversations for this ID.</span>';
       return;
     }
-    const historyItems = data.conversations.map((conversation) => `<button class="history-item" type="button" data-conversation-id="${conversation.conversation_id}">${conversation.conversation_id.slice(0, 8)}…<small>${new Date(conversation.updated_at).toLocaleDateString()}</small></button>`).join("");
+    const historyItems = data.conversations.map((conversation) => `<div class="history-item"><button class="history-open" type="button" data-conversation-id="${conversation.conversation_id}">${conversation.conversation_id.slice(0, 8)}…<small>${new Date(conversation.updated_at).toLocaleDateString()}</small></button><button class="history-delete" type="button" data-conversation-id="${conversation.conversation_id}" aria-label="Delete conversation ${conversation.conversation_id.slice(0, 8)}" title="Delete conversation">×</button></div>`).join("");
     elements.history.innerHTML = historyItems;
     elements.mobileHistory.innerHTML = historyItems;
-    document.querySelectorAll(".history-item").forEach((item) => item.addEventListener("click", () => reopenConversation(item.dataset.conversationId)));
+    document.querySelectorAll(".history-open").forEach((item) => item.addEventListener("click", () => reopenConversation(item.dataset.conversationId)));
+    document.querySelectorAll(".history-delete").forEach((item) => item.addEventListener("click", () => deleteConversation(item.dataset.conversationId)));
   } catch (error) {
     elements.history.innerHTML = '<span class="history-empty">Conversation history unavailable.</span>';
     elements.mobileHistory.innerHTML = '<span class="history-empty">Conversation history unavailable.</span>';
@@ -141,6 +141,14 @@ async function reopenConversation(conversationId) {
   switchView("assistant");
   elements.messages.innerHTML = "";
   data.messages.forEach((message) => addMessage(message.role === "user" ? "user" : "assistant", message.content));
+}
+
+async function deleteConversation(conversationId) {
+  if (!window.confirm("Delete this conversation and its saved messages?")) return;
+  const response = await fetch(`/conversations/${conversationId}`, { method: "DELETE" });
+  if (!response.ok) return;
+  if (state.conversationId === conversationId) resetConversation();
+  loadConversationHistory(historyEmployeeId());
 }
 
 function switchView(view) {
@@ -230,7 +238,6 @@ document.querySelector("#exit-button").addEventListener("click", () => {
   setProfile();
   resetConversation();
 });
-elements.clear.addEventListener("click", async () => { if (!state.conversationId) return; await fetch(`/conversations/${state.conversationId}/clear`, { method: "POST" }); elements.messages.innerHTML = ""; elements.conversationLabel.textContent = "Cleared conversation"; showWelcomeIfConversationEmpty(); });
 document.querySelectorAll(".prompt-link").forEach((button) => button.addEventListener("click", () => { elements.question.value = button.dataset.prompt; elements.question.focus(); }));
 
 elements.uploadButton?.addEventListener("click", () => elements.policyFile?.click());

@@ -203,3 +203,13 @@ class ConversationMemory:
                 )
             )
             session.commit()
+
+    def delete_conversation(self, conversation_id: str) -> None:
+        """Permanently remove a conversation and its related records."""
+        conversation_uuid = _conversation_uuid(conversation_id)
+        with Session(self.engine) as session:
+            conversation = session.get(Conversation, conversation_uuid)
+            if conversation is None:
+                raise ValueError("Conversation was not found.")
+            session.delete(conversation)
+            session.commit()

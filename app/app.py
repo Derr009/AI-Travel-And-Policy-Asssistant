@@ -85,10 +85,10 @@ def create_app(service: Any | None = None) -> Flask:
         messages = conversation_service.memory.get_recent_messages(conversation_id)
         return jsonify({"conversation_id": conversation_id, "messages": messages})
 
-    @app.post("/conversations/<conversation_id>/clear")
-    def clear_conversation(conversation_id: str):
-        conversation_service.memory.clear_conversation(conversation_id)
-        return jsonify({"conversation_id": conversation_id, "status": "cleared"})
+    @app.delete("/conversations/<conversation_id>")
+    def delete_conversation(conversation_id: str):
+        conversation_service.memory.delete_conversation(conversation_id)
+        return jsonify({"conversation_id": conversation_id, "status": "deleted"})
 
     @app.errorhandler(ValueError)
     def handle_value_error(error: ValueError):
