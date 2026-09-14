@@ -164,6 +164,12 @@ document.addEventListener("DOMContentLoaded", () => {
     sessionStorage.setItem("test_env_notice_dismissed", "true");
   });
 
+  const employeeIdCalloutOk = document.querySelector("#employee-id-callout-ok");
+  employeeIdCalloutOk?.addEventListener("click", () => {
+    document.querySelector("#employee-id-callout")?.setAttribute("hidden", "");
+    elements.employeeId.focus();
+  });
+
   // Attach button '+' modal launcher
   const attachBtn = document.querySelector("#policy-upload-button");
   const uploadDlg = document.querySelector("#upload-dialog");
@@ -340,7 +346,13 @@ async function ask(question) {
   }
 }
 
-elements.form.addEventListener("submit", (event) => { event.preventDefault(); const question = elements.question.value.trim(); if (!question) return; elements.question.value = ""; ask(question); });
+elements.form.addEventListener("submit", (event) => { 
+  event.preventDefault();
+  const question = elements.question.value.trim();
+  if (!question) return;
+  elements.question.value = "";
+  ask(question);
+});
 elements.question.addEventListener("keydown", (event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); elements.form.requestSubmit(); } });
 elements.question.addEventListener("input", () => {
   showWelcomeIfConversationEmpty();

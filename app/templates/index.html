@@ -218,7 +218,13 @@
             <form class="composer" id="ask-form">
               <div class="composer-meta">
                 <label for="employee-id">Employee ID:</label>
-                <input id="employee-id" name="employee_id" type="text" placeholder="EMP001" autocomplete="off">
+                <div class="employee-id-field">
+                  <input id="employee-id" name="employee_id" type="text" placeholder="EMP001" autocomplete="off">
+                  <div class="employee-id-callout" id="employee-id-callout" role="note">
+                    <span>Enter your EMP ID here for personalized checks.</span>
+                    <button id="employee-id-callout-ok" type="button">OK</button>
+                  </div>
+                </div>
                 <span class="composer-hint">Optional for managers · add an ID for personal checks</span>
               </div>
               <div class="composer-input-row">
@@ -234,6 +240,13 @@
             </form>
           </section>
         </div>
+
+        <dialog id="employee-id-dialog" class="employee-id-dialog" aria-labelledby="employee-id-dialog-title">
+          <div class="employee-id-dialog-icon" aria-hidden="true">ℹ️</div>
+          <h2 id="employee-id-dialog-title">Add your employee ID</h2>
+          <p>To personalize the policy check and keep conversation history tied to the right employee, please enter an EMP ID before sending your question.</p>
+          <button id="employee-id-dialog-ok" type="button">OK</button>
+        </dialog>
 
         <aside class="context-column" aria-label="Assistant context">
           <section class="context-card profile-card" id="profile">
