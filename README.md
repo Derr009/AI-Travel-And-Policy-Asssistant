@@ -1,5 +1,7 @@
 # AI Travel and Policy Assistant
 
+Demo : https://ai-travel-and-policy-asssistant.onrender.com
+
 A fictional corporate travel assistant that combines policy retrieval, deterministic employee and trip tools, local Ollama models, PostgreSQL conversation memory, MCP, and a Flask JSON API.
 
 > All employee and policy information in this repository is fictional training data.
